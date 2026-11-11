@@ -1,0 +1,35 @@
+# Demo local: ERP falso, proveedor de firma falso y el conector. Sin claves ni red externa.
+x-health: &health
+  interval: 2s
+  timeout: 2s
+  retries: 10
+
+services:
+  erp:
+    build: .
+    command: ["python", "-m", "connector.fake_servers", "erp", "--port", "8001"]
+    ports: ["127.0.0.1:8001:8001"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+
+  firma:
+    build: .
+    command: ["python", "-m", "connector.fake_servers", "firma", "--port", "8002", "--fail-first", "2"]
+    ports: ["127.0.0.1:8002:8002"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+
+  connector:
+    build: .
+    environment:
+      ERP_URL: http://erp:8001
+      SIGN_URL: http://firma:8002
+      BATCH_SIZE: "2"
+      MAX_ATTEMPTS: "4"
+    volumes:
+      - ./diagnostics:/app/diagnostics
+    depends_on:
+      erp: { condition: service_healthy }
+      firma: { condition: service_healthy }
