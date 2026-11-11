@@ -1,0 +1,11 @@
+[project]
+name = "erp-esignature-connector-demo"
+version = "0.1.0"
+description = "Caso de estudio: conector entre un ERP y una plataforma de firma electrónica"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
